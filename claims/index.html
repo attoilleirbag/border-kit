@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Fairfare Claims</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: a single claim "form" column; verdict slip sticks beside it on wide screens, follows it on phones */
+:root{
+  --bg:#eef1f5; --paper:#ffffff; --ink:#14213a; --muted:#56637a; --line:#d5dbe4;
+  --accent:#c77700; --accent-soft:#fff3df; --good:#1d7a4a; --good-soft:#e5f4ec; --bad:#b4332b; --bad-soft:#fbe9e7;
+  --display:"Archivo", "Helvetica Neue", Arial, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1522; --paper:#162033; --ink:#e7ecf5; --muted:#9aa7bd; --line:#2a3750;
+  --accent:#f0a634; --accent-soft:#33270f; --good:#5ccf92; --good-soft:#12301f; --bad:#f08077; --bad-soft:#3a1714; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1522; --paper:#162033; --ink:#e7ecf5; --muted:#9aa7bd; --line:#2a3750;
+  --accent:#f0a634; --accent-soft:#33270f; --good:#5ccf92; --good-soft:#12301f; --bad:#f08077; --bad-soft:#3a1714; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--display);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 48px}
+.wrap{max-width:1080px;margin:0 auto}
+header{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px 24px;margin-bottom:22px}
+h1{font-stretch:118%;font-weight:800;font-size:clamp(30px,5vw,44px);line-height:1;margin:0;letter-spacing:-.01em;text-wrap:balance}
+h1 span{color:var(--accent)}
+.lede{color:var(--muted);max-width:60ch;margin:8px 0 0}
+.mode{display:inline-flex;background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:4px}
+.mode button{font:600 15px var(--display);border:0;background:none;color:var(--muted);padding:8px 18px;border-radius:999px;cursor:pointer}
+.mode button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:820px){.grid{grid-template-columns:1fr}}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:22px}
+fieldset{border:0;margin:0 0 20px;padding:0;display:grid;gap:10px;min-width:0}
+legend{font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;padding:0}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{position:relative}
+.opt input{position:absolute;opacity:0;inset:0;cursor:pointer}
+.opt span{display:block;border:1px solid var(--line);border-radius:10px;padding:9px 13px;font-size:14.5px;line-height:1.3}
+.opt input:checked+span{border-color:var(--ink);background:var(--ink);color:var(--bg)}
+.opt input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+label.f{display:grid;gap:5px;font-size:14px;color:var(--muted)}
+input[type=number],input[type=text],input[type=date]{font:500 16px var(--mono);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:10px 12px;width:100%}
+input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.hint{font-size:13px;color:var(--muted);margin:0}
+.slip{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px)}
+.verdict{border-radius:12px;padding:18px;margin-bottom:16px}
+.verdict.yes{background:var(--good-soft);color:var(--good)}
+.verdict.no{background:var(--bad-soft);color:var(--bad)}
+.verdict.maybe{background:var(--accent-soft);color:var(--accent)}
+.verdict .tag{font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.amount{font:800 clamp(40px,7vw,56px)/1 var(--display);font-stretch:110%;font-variant-numeric:tabular-nums;margin:6px 0 4px}
+.verdict p{margin:0;color:var(--ink);font-size:14.5px}
+.why{list-style:none;padding:0;margin:0 0 16px;display:grid;gap:8px;font-size:14.5px}
+.why li{display:grid;grid-template-columns:18px 1fr;gap:8px}
+.why li::before{content:"·";font-weight:800;color:var(--accent)}
+h2{font-size:20px;font-stretch:110%;margin:0 0 12px}
+.letter{font:14px/1.6 var(--mono);white-space:pre-wrap;background:var(--bg);border:1px dashed var(--line);border-radius:10px;padding:16px;max-height:420px;overflow:auto;margin:0}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-items:center}
+.btn{font:600 15px var(--display);border:0;border-radius:10px;padding:11px 18px;background:var(--accent);color:#1b1200;cursor:pointer}
+.status{font-size:13px;color:var(--muted)}
+.details{margin-top:20px}
+.foot{margin-top:28px;font-size:13px;color:var(--muted);max-width:75ch}
+.foot a{color:inherit}
+@media (prefers-reduced-motion:no-preference){.verdict{transition:background .2s,color .2s}}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+<header>
+  <div>
+    <h1>Fair<span>fare</span> Claims</h1>
+    <p class="lede">Check whether a delayed or cancelled flight or train in Europe owes you money, see the amount, and get a claim letter ready to send to the carrier yourself. Free, and nothing you type leaves this page.</p>
+  </div>
+  <div class="mode" role="group" aria-label="Type of journey">
+    <button id="m-flight" aria-pressed="true">Flight</button>
+    <button id="m-train" aria-pressed="false">Train</button>
+  </div>
+</header>
+
+<div class="grid">
+<form class="card" id="form" autocomplete="off">
+  <div id="flight">
+    <fieldset>
+      <legend>Where did it fly?</legend>
+      <div class="opts">
+        <label class="opt"><input type="radio" name="scope" value="fromEU" checked><span>Departed from an EU, Iceland, Norway or Swiss airport</span></label>
+        <label class="opt"><input type="radio" name="scope" value="toEUcarrier"><span>Arrived in the EU on an EU airline</span></label>
+        <label class="opt"><input type="radio" name="scope" value="none"><span>Neither</span></label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Flight distance</legend>
+      <div class="opts">
+        <label class="opt"><input type="radio" name="dist" value="1" checked><span>Up to 1,500 km</span></label>
+        <label class="opt"><input type="radio" name="dist" value="2"><span>1,500–3,500 km, or any longer flight inside the EU</span></label>
+        <label class="opt"><input type="radio" name="dist" value="3"><span>Over 3,500 km</span></label>
+      </div>
+      <p class="hint">Rough guide: Split–Rome is about 400 km, London–Rome 1,450 km, Lisbon–Warsaw 2,750 km, Frankfurt–São Paulo 9,800 km.</p>
+    </fieldset>
+    <fieldset>
+      <legend>What happened?</legend>
+      <div class="opts">
+        <label class="opt"><input type="radio" name="what" value="delay" checked><span>Arrived late</span></label>
+        <label class="opt"><input type="radio" name="what" value="cancel"><span>Cancelled</span></label>
+        <label class="opt"><input type="radio" name="what" value="denied"><span>Denied boarding (overbooked)</span></label>
+      </div>
+      <div id="q-delay" class="row">
+        <label class="f">Arrival delay at final destination (hours)<input id="delayH" type="number" min="0" step="0.25" value="3.5"></label>
+      </div>
+      <div id="q-cancel" hidden>
+        <div class="opts">
+          <label class="opt"><input type="radio" name="notice" value="lt14" checked><span>Told less than 14 days before</span></label>
+          <label class="opt"><input type="radio" name="notice" value="ge14"><span>Told 14 days or more before</span></label>
+        </div>
+      </div>
+      <div id="q-reroute" class="row" hidden>
+        <label class="f">If rebooked: how many hours later did you arrive than planned?<input id="lateH" type="number" min="0" step="0.25" value="5"></label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Reason the airline gave</legend>
+      <div class="opts">
+        <label class="opt"><input type="radio" name="cause" value="airline" checked><span>Technical fault, crew shortage, airline staff strike, or none given</span></label>
+        <label class="opt"><input type="radio" name="cause" value="extra"><span>Storm, air traffic control, security alert, bird strike, outside strike</span></label>
+      </div>
+    </fieldset>
+  </div>
+
+  <div id="train" hidden>
+    <fieldset>
+      <legend>Your ticket</legend>
+      <div class="row">
+        <label class="f">Ticket price paid (€)<input id="price" type="number" min="0" step="0.5" value="79"></label>
+        <label class="f">Delay at your final destination (minutes)<input id="delayM" type="number" min="0" step="5" value="95"></label>
+      </div>
+      <p class="hint">Count the whole booking. If you missed a connection on the same ticket, use the delay at the end of the trip.</p>
+    </fieldset>
+    <fieldset>
+      <legend>Cause of the delay</legend>
+      <div class="opts">
+        <label class="opt"><input type="radio" name="tcause" value="op" checked><span>Technical, staffing, rail staff strike, or not stated</span></label>
+        <label class="opt"><input type="radio" name="tcause" value="fm"><span>Extreme weather, natural disaster, public health crisis</span></label>
+        <label class="opt"><input type="radio" name="tcause" value="third"><span>Person on the tracks, police action, sabotage</span></label>
+      </div>
+    </fieldset>
+  </div>
+
+  <fieldset class="details">
+    <legend>For the letter</legend>
+    <div class="row">
+      <label class="f">Your full name<input id="name" type="text" placeholder="Ana Kovač"></label>
+      <label class="f">Booking reference<input id="ref" type="text" placeholder="X7KQ2P"></label>
+      <label class="f"><span id="numLabel">Flight number</span><input id="num" type="text" placeholder="FR 1234"></label>
+      <label class="f">Date of travel<input id="date" type="date"></label>
+      <label class="f">From<input id="from" type="text" placeholder="Split"></label>
+      <label class="f">To<input id="to" type="text" placeholder="Rome Fiumicino"></label>
+    </div>
+  </fieldset>
+</form>
+
+<aside class="slip">
+  <div class="card">
+    <div id="verdict" class="verdict"></div>
+    <ul id="why" class="why"></ul>
+    <h2>Your claim letter</h2>
+    <pre id="letter" class="letter" tabindex="0"></pre>
+    <div class="actions">
+      <button class="btn" id="copy" type="button">Copy letter</button>
+      <span class="status" id="status" role="status"></span>
+    </div>
+    <p class="hint" style="margin-top:12px">Send it through the carrier's own claims form or customer service address. If they refuse or ignore you, the national enforcement body in the country of departure handles complaints for free.</p>
+  </div>
+</aside>
+</div>
+
+<p class="foot">Rules checked 27 October 2026. Flights: Regulation (EC) 261/2004 (€250 / €400 / €600, 3-hour arrival delay). A reform agreed in June 2026 keeps those amounts and the 3-hour threshold and adds a 9-month claim deadline once it applies; until then, claim deadlines are set by national law and vary by country. Trains: Regulation (EU) 2021/782, in force since 7 June 2023 (25% of the fare for 60–119 minutes, 50% for 120+, no payment under €4; operators are exempt for extreme weather, natural disasters, public health crises and some third-party causes, but staff strikes still count). Some countries exempt local and regional services. This page gives general information, not legal advice. UK flights follow a separate UK version of the rules with amounts in pounds.</p>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const val = n => (document.querySelector(`input[name="${n}"]:checked`)||{}).value;
+let mode = "flight";
+const eur = n => "€" + (Math.round(n*100)/100).toLocaleString("en-IE",{minimumFractionDigits: n%1?2:0, maximumFractionDigits:2});
+
+function flightResult(){
+  const scope=val("scope"), d=+val("dist"), what=val("what"), cause=val("cause");
+  const base={1:250,2:400,3:600}[d];
+  const why=[]; let amount=0, kind="no", tag="Probably not covered";
+  if(scope==="none"){ why.push("EU rules cover flights leaving an EU airport (plus Iceland, Norway and Switzerland), or arriving in the EU on an EU airline. This flight is neither."); return {kind,tag,amount,why}; }
+  if(what==="delay"){
+    const h=+$("#delayH").value||0;
+    if(h<3){ why.push(`Compensation starts at a 3-hour delay on arrival. You arrived ${h} h late.`); why.push("You may still be owed meals, drinks and, for long waits, a hotel."); return {kind,tag,amount,why}; }
+    amount=base; why.push(`Arriving ${h} h late passes the 3-hour threshold.`);
+    if(d===3 && h<4){ amount=base/2; why.push("On flights over 3,500 km, a delay between 3 and 4 hours can be cut by half."); }
+  } else {
+    if(what==="cancel" && val("notice")==="ge14"){ why.push("Cancellations announced 14 days or more ahead don't earn compensation. You can still choose a full refund or a new flight."); return {kind,tag,amount,why}; }
+    amount=base;
+    why.push(what==="cancel"?"Cancelled with less than 14 days' notice.":"Being bumped against your will earns compensation straight away.");
+    const late=+$("#lateH").value||0, limit={1:2,2:3,3:4}[d];
+    if(late<=limit){ amount=base/2; why.push(`The new flight got you there within ${limit} h of the original time, so the airline may halve the amount.`); }
+    if(what==="cancel" && late<=2){ why.push("If they offered a replacement leaving no more than an hour early and arriving under 2 hours late, they may owe nothing. Check the exact times."); }
+  }
+  if(cause==="extra"){ kind="maybe"; tag="Depends on the cause"; why.push("Airlines can refuse for genuine extraordinary circumstances. Ask for the specific reason in writing: courts often reject vague claims, and a fault on an earlier flight doesn't excuse the airline."); }
+  else { kind="yes"; tag="You are likely owed"; why.push("Technical faults and the airline's own staffing problems are not extraordinary circumstances."); }
+  why.push("This is per passenger, in cash, on top of any refund or rebooking.");
+  return {kind,tag,amount,why};
+}
+
+function trainResult(){
+  const p=+$("#price").value||0, m=+$("#delayM").value||0, c=val("tcause");
+  const why=[]; let pct=0;
+  if(m>=120) pct=.5; else if(m>=60) pct=.25;
+  let amount=p*pct, kind="no", tag="No compensation";
+  if(!pct){ why.push(`Payment starts at 60 minutes late. You arrived ${m} min late.`); return {kind,tag,amount:0,why}; }
+  why.push(`${m} minutes late earns ${pct*100}% of the fare.`);
+  if(amount<4){ why.push("Operators may skip payouts under €4."); return {kind,tag,amount:0,why}; }
+  if(c==="fm"){ kind="maybe"; tag="Probably exempt"; why.push("Since June 2023, operators don't pay compensation for extreme weather, natural disasters or public health crises. Refunds, rerouting and assistance still apply."); }
+  else if(c==="third"){ kind="maybe"; tag="May be exempt"; why.push("Operators can refuse when a third party they couldn't prevent caused the delay, such as people on the track. Ask them to state the cause."); }
+  else { kind="yes"; tag="You are likely owed"; why.push("Operational problems and strikes by railway staff are not exempt."); }
+  why.push("Operators should pay within one month of your request, in money unless you accept vouchers. Many have their own, more generous schemes.");
+  return {kind,tag,amount,why};
+}
+
+function letter(r){
+  const n=$("#name").value||"[Your full name]", ref=$("#ref").value||"[booking reference]",
+        num=$("#num").value||(mode==="flight"?"[flight number]":"[train number]"),
+        date=$("#date").value?new Date($("#date").value+"T12:00").toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"}):"[date of travel]",
+        from=$("#from").value||"[departure]", to=$("#to").value||"[destination]";
+  const amt = r.amount? eur(r.amount) : "[amount]";
+  if(mode==="flight"){
+    const what=val("what");
+    const event = what==="delay"?`arrived ${$("#delayH").value} hours late at its final destination`:what==="cancel"?"was cancelled less than 14 days before departure":"was overbooked and I was denied boarding against my will";
+    return `Subject: Compensation claim under Regulation (EC) 261/2004 – ${num}, ${date}
+
+Dear Sir or Madam,
+
+I was booked on flight ${num} from ${from} to ${to} on ${date} (booking reference ${ref}). The flight ${event}.
+
+Under Articles 5, 6 and 7 of Regulation (EC) No 261/2004, as interpreted by the Court of Justice of the European Union in Sturgeon (C-402/07) and Nelson (C-581/10), I am entitled to compensation of ${amt} per passenger.
+
+If you believe extraordinary circumstances apply, please state the specific cause and provide evidence that it could not have been avoided even if all reasonable measures had been taken.
+
+Please pay ${amt} to the following account within 30 days:
+[Account holder, IBAN, BIC]
+
+I have attached my booking confirmation and boarding pass. If I do not receive a satisfactory reply, I will refer the matter to the national enforcement body.
+
+Yours faithfully,
+${n}`;
+  }
+  return `Subject: Compensation request under Regulation (EU) 2021/782 – ${num}, ${date}
+
+Dear Sir or Madam,
+
+I travelled on train ${num} from ${from} to ${to} on ${date} (booking reference ${ref}). I reached my final destination ${$("#delayM").value} minutes later than scheduled.
+
+Under Article 19 of Regulation (EU) 2021/782 on rail passengers' rights and obligations, I request compensation of ${amt}, which is ${+$("#delayM").value>=120?"50":"25"}% of the ticket price of ${eur(+$("#price").value||0)}.
+
+Please pay this amount in money to the account below within one month, as Article 19 requires:
+[Account holder, IBAN, BIC]
+
+My ticket is attached.
+
+Yours faithfully,
+${n}`;
+}
+
+function render(){
+  const r = mode==="flight"?flightResult():trainResult();
+  const v=$("#verdict"); v.className="verdict "+r.kind;
+  v.innerHTML = `<div class="tag">${r.tag}</div><div class="amount">${r.amount?eur(r.amount):"€0"}</div><p>${mode==="flight"?"Per passenger, fixed by law. The ticket price doesn't matter.":"Based on the fare you paid."}</p>`;
+  $("#why").innerHTML = r.why.map(t=>`<li>${t}</li>`).join("");
+  $("#letter").textContent = letter(r);
+}
+function setMode(m){
+  mode=m; $("#flight").hidden=m!=="flight"; $("#train").hidden=m!=="train";
+  $("#m-flight").setAttribute("aria-pressed",m==="flight"); $("#m-train").setAttribute("aria-pressed",m==="train");
+  $("#numLabel").textContent = m==="flight"?"Flight number":"Train number";
+  $("#num").placeholder = m==="flight"?"FR 1234":"FR 9541";
+  render();
+}
+function syncWhat(){
+  const w=val("what"); $("#q-delay").hidden=w!=="delay"; $("#q-cancel").hidden=w!=="cancel"; $("#q-reroute").hidden=w==="delay"; render();
+}
+$("#m-flight").onclick=()=>setMode("flight"); $("#m-train").onclick=()=>setMode("train");
+$("#form").addEventListener("input", e=>{ if(e.target.name==="what") syncWhat(); else render(); });
+$("#form").addEventListener("submit", e=>e.preventDefault());
+$("#copy").onclick=async()=>{
+  try{ await navigator.clipboard.writeText($("#letter").textContent); $("#status").textContent="Copied. Paste it into the carrier's claim form."; }
+  catch{ const s=getSelection(), rg=document.createRange(); rg.selectNodeContents($("#letter")); s.removeAllRanges(); s.addRange(rg); $("#status").textContent="Selected. Press Ctrl+C or ⌘C to copy."; }
+};
+syncWhat();
+</script>
+
+</body>
+</html>

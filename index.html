@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Border Kit</title>
+<meta name="description" content="Free tools for travelling and living across European borders: delay compensation, Schengen and tax day counts, and train travel with dogs.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..800&display=swap">
+<style>
+:root{--bg:#f2f3f1;--panel:#fff;--ink:#17201d;--muted:#5e6964;--line:#d8ddda;--accent:#0f7c6b;--font:"Archivo","Helvetica Neue",Arial,sans-serif}
+@media (prefers-color-scheme:dark){:root{--bg:#0d1311;--panel:#151d1a;--ink:#e6ece9;--muted:#98a6a0;--line:#26322e;--accent:#3fc2aa;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--font);padding:48px max(16px,env(safe-area-inset-left,0px)) 56px max(16px,env(safe-area-inset-right,0px))}
+main{max-width:880px;margin:0 auto}
+h1{font-size:clamp(36px,7vw,64px);font-stretch:120%;font-weight:800;line-height:.95;margin:0 0 14px;letter-spacing:-.02em}
+p.lede{color:var(--muted);max-width:56ch;margin:0 0 32px;font-size:17px}
+.tools{display:grid;gap:14px}
+a.tool{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;text-decoration:none;color:inherit;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
+a.tool:hover,a.tool:focus-visible{border-color:var(--accent);outline:none}
+a.tool h2{margin:0 0 4px;font-size:22px;font-stretch:110%}
+a.tool p{margin:0;color:var(--muted);font-size:15px}
+a.tool span{font-size:22px;color:var(--accent)}
+footer{margin-top:32px;font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+  <h1>Border Kit</h1>
+  <p class="lede">Free tools for people who travel and live across European borders. No accounts, no tracking. What you enter stays in your own browser.</p>
+  <div class="tools">
+    <a class="tool" href="claims/"><div><h2>Fairfare Claims</h2><p>Was your flight or train late? See what the EU says you're owed and get the claim letter.</p></div><span aria-hidden="true">→</span></a>
+    <a class="tool" href="dayline/"><div><h2>Dayline</h2><p>Count your Schengen 90/180 days and your days per country toward tax residency.</p></div><span aria-hidden="true">→</span></a>
+    <a class="tool" href="dogs/"><div><h2>Dogs on Rails</h2><p>Which European trains take your dogs, what they cost, and what papers to carry.</p></div><span aria-hidden="true">→</span></a>
+  </div>
+  <footer>General information, checked October 2026. Not legal, tax or veterinary advice. Rules change, so follow the source links before you travel.</footer>
+</main>
+</body>
+</html>

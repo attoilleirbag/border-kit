@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Dayline Tracker</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+/* Layout: summary dials on top, 180-day strip, then stays ledger and per-country year table side by side */
+:root{
+  --bg:#f3f5f4; --panel:#ffffff; --ink:#132620; --muted:#5d6f69; --line:#d7dfdc;
+  --accent:#0f7c6b; --accent-soft:#dff1ed; --warn:#b86e00; --warn-soft:#fdf0d9; --bad:#b3362c; --bad-soft:#fbe7e4; --cell:#e3e9e7;
+  --sans:"Sora", "Segoe UI", system-ui, sans-serif; --mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c1513; --panel:#13201d; --ink:#e3eeea; --muted:#90a59e; --line:#24352f;
+  --accent:#3fc2aa; --accent-soft:#123029; --warn:#f0a83c; --warn-soft:#33260f; --bad:#f0857a; --bad-soft:#3a1814; --cell:#1d2c28; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c1513; --panel:#13201d; --ink:#e3eeea; --muted:#90a59e; --line:#24352f;
+  --accent:#3fc2aa; --accent-soft:#123029; --warn:#f0a83c; --warn-soft:#33260f; --bad:#f0857a; --bad-soft:#3a1814; --cell:#1d2c28; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 48px}
+.wrap{max-width:1100px;margin:0 auto;display:grid;gap:20px}
+h1{font-size:clamp(28px,4.5vw,38px);margin:0;letter-spacing:-.02em;text-wrap:balance}
+.lede{color:var(--muted);margin:6px 0 0;max-width:68ch}
+.label{font:500 11.5px var(--mono);text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;min-width:0}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.stat .big{font:700 clamp(34px,5vw,46px)/1.05 var(--mono);font-variant-numeric:tabular-nums;margin:6px 0 2px}
+.stat p{margin:0;color:var(--muted);font-size:13.5px}
+.pill{display:inline-block;font:600 12px var(--mono);padding:3px 9px;border-radius:999px}
+.ok{background:var(--accent-soft);color:var(--accent)} .warn{background:var(--warn-soft);color:var(--warn)} .bad{background:var(--bad-soft);color:var(--bad)}
+.strip-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:baseline;margin-bottom:10px}
+.strip{display:grid;grid-template-columns:repeat(60,1fr);gap:2px}
+.strip i{display:block;aspect-ratio:1;border-radius:2px;background:var(--cell)}
+.strip i.on{background:var(--accent)} .strip i.today{outline:2px solid var(--ink);outline-offset:1px}
+.axis{display:flex;justify-content:space-between;font:12px var(--mono);color:var(--muted);margin-top:6px}
+.two{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+h2{font-size:18px;margin:0 0 12px}
+.add{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr) auto;gap:8px;align-items:end;margin-bottom:14px}
+@media (max-width:560px){.add{grid-template-columns:1fr 1fr}.add .country{grid-column:1/-1}.add button{grid-column:1/-1}}
+label.f{display:grid;gap:4px;font-size:12.5px;color:var(--muted)}
+input,select{font:14px var(--mono);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%;min-width:0}
+button{font:600 14px var(--sans);border-radius:8px;padding:10px 14px;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--panel)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font:500 11.5px var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--muted);text-align:left;padding:8px 6px;border-bottom:1px solid var(--line)}
+td{padding:9px 6px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+td.num{font-family:var(--mono);text-align:right} th.num{text-align:right}
+td .x{border:0;background:none;color:var(--muted);padding:2px 6px;font-size:18px;line-height:1}
+.sch{font:600 10.5px var(--mono);color:var(--accent);margin-left:6px}
+.bar{height:6px;border-radius:3px;background:var(--cell);margin-top:5px;overflow:hidden}
+.bar span{display:block;height:100%;background:var(--accent)}
+.bar span.warn{background:var(--warn)} .bar span.bad{background:var(--bad)}
+.banner{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:var(--warn-soft);color:var(--ink);border-radius:10px;padding:10px 14px;font-size:14px}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+textarea{width:100%;min-height:90px;font:12.5px var(--mono);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:10px}
+.yearpick{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.yearpick select{width:auto}
+.foot{font-size:13px;color:var(--muted);max-width:80ch}
+.empty{color:var(--muted);font-size:14px;padding:12px 0}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+<header>
+  <h1>Dayline</h1>
+  <p class="lede">Log where you've been and see two counts that matter when you live across borders: your Schengen 90/180 days and your days per country toward the usual 183-day tax residency line. Your log stays in this browser only.</p>
+</header>
+
+<div id="banner" class="banner" hidden>
+  <span>You're looking at example trips. Add your own, then clear these.</span>
+  <button id="clearEx" type="button">Clear examples</button>
+</div>
+
+<section class="summary">
+  <div class="panel stat"><div class="label">Schengen days used</div><div class="big" id="used">0</div><p>of 90 in the 180 days ending <span id="asof"></span></p></div>
+  <div class="panel stat"><div class="label">Days left</div><div class="big" id="left">90</div><p id="leftNote"></p></div>
+  <div class="panel stat"><div class="label">If you stay from today</div><div class="big" id="until" style="font-size:clamp(24px,3.6vw,32px)">–</div><p id="untilNote">Last day you could remain in Schengen without leaving</p></div>
+</section>
+
+<section class="panel">
+  <div class="strip-head"><h2 style="margin:0">Last 180 days</h2><label class="f" style="grid-auto-flow:column;align-items:center;gap:8px">Check as of <input id="ref" type="date" style="width:auto"></label></div>
+  <div class="strip" id="strip" aria-label="Each square is one day; filled squares are days in the Schengen area"></div>
+  <div class="axis"><span id="ax0"></span><span id="ax1"></span></div>
+</section>
+
+<div class="two">
+<section class="panel">
+  <h2>Stays</h2>
+  <form class="add" id="add">
+    <label class="f country">Country<select id="c" required></select></label>
+    <label class="f">Arrived<input id="a" type="date" required></label>
+    <label class="f">Left (blank = still there)<input id="b" type="date"></label>
+    <button class="primary" type="submit">Add</button>
+  </form>
+  <div class="tablewrap"><table><thead><tr><th>Country</th><th>Arrived</th><th>Left</th><th class="num">Days</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
+  <div class="tools">
+    <button id="exp" type="button">Copy backup</button>
+    <button id="imp" type="button">Restore from backup</button>
+  </div>
+  <div id="impBox" hidden><textarea id="impText" placeholder="Paste a backup here"></textarea><div class="tools"><button class="primary" id="impGo" type="button">Restore</button><span id="impMsg" class="foot"></span></div></div>
+</section>
+
+<section class="panel">
+  <h2>Days per country</h2>
+  <div class="yearpick"><span class="label">Calendar year</span><select id="year"></select></div>
+  <div class="tablewrap"><table><thead><tr><th>Country</th><th class="num">Days</th><th class="num">To 183</th></tr></thead><tbody id="tax"></tbody></table></div>
+  <p class="foot" style="margin-top:12px">183 days in a calendar year is the most common trigger, but not the only one. Some countries use a rolling 12 months (the UK uses a statutory residence test), and a home, family or main economic interests can make you resident with fewer days. Arrival and departure days both count here.</p>
+</section>
+</div>
+
+<p class="foot">The 90/180 rule applies to people without an EU, EEA or Swiss passport or residence permit. Any 180-day window can hold at most 90 days in the 29 Schengen countries, and arrival and departure days both count. Days in Ireland, Cyprus, the UK and other non-Schengen countries don't count. Since October 2025 the EU Entry/Exit System records these days at the border, so mistakes are visible. For an official check, use the European Commission's short-stay calculator. Not legal or tax advice.</p>
+</div>
+
+<script>
+const SCH=["Austria","Belgium","Bulgaria","Croatia","Czechia","Denmark","Estonia","Finland","France","Germany","Greece","Hungary","Iceland","Italy","Latvia","Liechtenstein","Lithuania","Luxembourg","Malta","Netherlands","Norway","Poland","Portugal","Romania","Slovakia","Slovenia","Spain","Sweden","Switzerland"];
+const OTHER=["Albania","Bosnia and Herzegovina","Brazil","Canada","Cyprus","Ireland","Montenegro","Morocco","North Macedonia","Serbia","South Africa","Turkey","Ukraine","United Kingdom","United States","Other"];
+const $=s=>document.querySelector(s);
+const DAY=864e5;
+const toN=s=>{const [y,m,d]=s.split("-").map(Number);return Math.round(Date.UTC(y,m-1,d)/DAY)};
+const toS=n=>new Date(n*DAY).toISOString().slice(0,10);
+const fmt=n=>new Date(n*DAY).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric",timeZone:"UTC"});
+const now=new Date(); const TODAY=Math.round(Date.UTC(now.getFullYear(),now.getMonth(),now.getDate())/DAY);
+const KEY="dayline.v1";
+const EXAMPLE=[
+ {c:"Spain",a:toS(TODAY-170),b:toS(TODAY-140),ex:1},
+ {c:"Morocco",a:toS(TODAY-139),b:toS(TODAY-120),ex:1},
+ {c:"Portugal",a:toS(TODAY-120),b:toS(TODAY-95),ex:1},
+ {c:"United Kingdom",a:toS(TODAY-94),b:toS(TODAY-40),ex:1},
+ {c:"Greece",a:toS(TODAY-39),b:"",ex:1}
+];
+let stays;
+try{ stays=JSON.parse(localStorage.getItem(KEY)); }catch{}
+if(!Array.isArray(stays)) stays=EXAMPLE.slice();
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(stays))}catch{}};
+
+$("#c").innerHTML=`<optgroup label="Schengen">${SCH.map(c=>`<option>${c}</option>`).join("")}</optgroup><optgroup label="Not Schengen">${OTHER.map(c=>`<option>${c}</option>`).join("")}</optgroup>`;
+$("#c").value="Croatia"; $("#a").value=toS(TODAY); $("#ref").value=toS(TODAY);
+
+const end=s=>s.b?toN(s.b):Math.max(TODAY,toN(s.a));
+function schengenDays(){ const set=new Set(); for(const s of stays){ if(!SCH.includes(s.c)) continue; for(let d=toN(s.a);d<=end(s);d++) set.add(d);} return set; }
+function usedOn(set,ref){ let n=0; for(let d=ref-179;d<=ref;d++) if(set.has(d)) n++; return n; }
+
+function render(){
+  stays.sort((x,y)=>x.a<y.a?1:-1);
+  $("#banner").hidden=!stays.some(s=>s.ex);
+  const ref=$("#ref").value?toN($("#ref").value):TODAY;
+  const set=schengenDays(), used=usedOn(set,ref), left=Math.max(0,90-used);
+  $("#used").textContent=used; $("#asof").textContent=fmt(ref);
+  $("#left").textContent=left;
+  let st = used>90?["bad","Over the limit by "+(used-90)+" days"]:used>=75?["warn","Getting close"]:["ok","Within the limit"];
+  // next day a slot frees up
+  let free="";
+  if(used>0){ for(let d=ref-179;d<=ref;d++){ if(set.has(d)){ free=`The oldest counted day drops off on ${fmt(d+180)}.`; break; } } }
+  $("#leftNote").innerHTML=`<span class="pill ${st[0]}">${st[1]}</span> ${free}`;
+  // simulate staying continuously from ref
+  const sim=new Set(set); let d=ref, last=null;
+  for(let i=0;i<400;i++){ sim.add(d); if(usedOn(sim,d)>90) break; last=d; d++; }
+  if(last===null){ $("#until").textContent="Leave now"; $("#untilNote").textContent="You're already over 90 days in this window."; }
+  else { $("#until").textContent=fmt(last); $("#untilNote").textContent=`Last day you could remain in Schengen without leaving (${last-ref+1} days from ${ref===TODAY?"today":fmt(ref)}).`; }
+  // strip
+  let cells=""; for(let x=ref-179;x<=ref;x++) cells+=`<i class="${set.has(x)?"on":""}${x===ref?" today":""}" title="${fmt(x)}${set.has(x)?" · Schengen":""}"></i>`;
+  $("#strip").innerHTML=cells; $("#ax0").textContent=fmt(ref-179); $("#ax1").textContent=fmt(ref);
+  // rows
+  $("#rows").innerHTML = stays.length? stays.map((s,i)=>`<tr><td>${s.c}${SCH.includes(s.c)?'<span class="sch">SCH</span>':""}${s.ex?' <span class="pill warn" style="font-size:10px">example</span>':""}</td><td>${fmt(toN(s.a))}</td><td>${s.b?fmt(toN(s.b)):"still there"}</td><td class="num">${end(s)-toN(s.a)+1}</td><td><button class="x" data-i="${i}" aria-label="Remove ${s.c} stay">×</button></td></tr>`).join("")
+    : `<tr><td colspan="5" class="empty">No stays yet. Add where you are now, then fill in the last six months.</td></tr>`;
+  // years
+  const years=new Set([now.getUTCFullYear()]); stays.forEach(s=>{for(let y=+s.a.slice(0,4);y<=+toS(end(s)).slice(0,4);y++) years.add(y)});
+  const ys=[...years].sort((a,b)=>b-a), cur=+$("#year").value||ys[0];
+  $("#year").innerHTML=ys.map(y=>`<option${y===cur?" selected":""}>${y}</option>`).join("");
+  const y0=toN(cur+"-01-01"), y1=toN(cur+"-12-31"), per={};
+  for(const s of stays){ const days=new Set(per[s.c]||[]); for(let d=Math.max(toN(s.a),y0);d<=Math.min(end(s),y1);d++) days.add(d); if(days.size) per[s.c]=days; }
+  const list=Object.entries(per).map(([c,ds])=>[c,ds.size]).sort((a,b)=>b[1]-a[1]);
+  $("#tax").innerHTML = list.length? list.map(([c,n])=>{const k=n>=183?"bad":n>=150?"warn":"";return `<tr><td>${c}<div class="bar"><span class="${k}" style="width:${Math.min(100,n/183*100)}%"></span></div></td><td class="num">${n}</td><td class="num">${n>=183?'<span class="pill bad">reached</span>':183-n}</td></tr>`}).join("")
+    : `<tr><td colspan="3" class="empty">No days logged in ${cur}.</td></tr>`;
+}
+$("#add").addEventListener("submit",e=>{e.preventDefault(); const a=$("#a").value,b=$("#b").value; if(b&&b<a){alertMsg("The leaving date is before the arrival date.");return;} stays.push({c:$("#c").value,a,b}); save(); render();});
+function alertMsg(t){ $("#impMsg").textContent=""; const p=$("#leftNote"); p.innerHTML=`<span class="pill bad">${t}</span>`; }
+$("#rows").addEventListener("click",e=>{const b=e.target.closest(".x"); if(!b) return; stays.splice(+b.dataset.i,1); save(); render();});
+$("#clearEx").onclick=()=>{stays=stays.filter(s=>!s.ex); save(); render();};
+$("#ref").oninput=render; $("#year").onchange=render;
+$("#exp").onclick=async e=>{const t=JSON.stringify(stays.filter(s=>!s.ex)); try{await navigator.clipboard.writeText(t); e.target.textContent="Copied";}catch{$("#impBox").hidden=false; $("#impText").value=t; $("#impText").select(); $("#impMsg").textContent="Copy this text and keep it somewhere safe.";} setTimeout(()=>e.target.textContent="Copy backup",1800);};
+$("#imp").onclick=()=>{$("#impBox").hidden=!$("#impBox").hidden;};
+$("#impGo").onclick=()=>{try{const d=JSON.parse($("#impText").value); if(!Array.isArray(d)||!d.every(s=>s.c&&/^\d{4}-\d\d-\d\d$/.test(s.a))) throw 0; stays=d; save(); render(); $("#impMsg").textContent="Restored "+d.length+" stays.";}catch{$("#impMsg").textContent="That text isn't a Dayline backup. Paste the whole thing you copied.";}};
+render();
+</script>
+
+</body>
+</html>

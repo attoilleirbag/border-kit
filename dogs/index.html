@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Dogs on Rails</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Layout: left column builds the trip (people, dogs, operators); right column shows per-operator verdicts and the border checklist */
+:root{
+  --bg:#f4f2ec; --panel:#fffdf8; --ink:#25261c; --muted:#6b6a58; --line:#ddd8c8;
+  --moss:#3f6b2e; --moss-soft:#e6eedb; --clay:#b4562a; --clay-soft:#f8e5da; --amber:#9a6a00; --amber-soft:#f6ecd0;
+  --display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif; --body:"Figtree", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#16170f; --panel:#1f2017; --ink:#ecebdc; --muted:#a8a690; --line:#34352a;
+  --moss:#9ccc7c; --moss-soft:#24321b; --clay:#f0946a; --clay-soft:#3c2216; --amber:#e8b850; --amber-soft:#352a10; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#16170f; --panel:#1f2017; --ink:#ecebdc; --muted:#a8a690; --line:#34352a;
+  --moss:#9ccc7c; --moss-soft:#24321b; --clay:#f0946a; --clay-soft:#3c2216; --amber:#e8b850; --amber-soft:#352a10; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15.5px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 48px}
+.wrap{max-width:1120px;margin:0 auto}
+h1{font:800 clamp(34px,6vw,58px)/.95 var(--display);letter-spacing:-.03em;margin:0;text-wrap:balance}
+h1 em{font-style:normal;color:var(--moss)}
+.lede{color:var(--muted);max-width:62ch;margin:10px 0 24px}
+.grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.3fr);gap:20px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;min-width:0}
+h2{font:700 20px var(--display);margin:0 0 12px;letter-spacing:-.01em}
+.sec{display:grid;gap:12px;padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--line)}
+.sec:last-child{border:0;margin:0;padding:0}
+.label{font:600 12px var(--body);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+input,select{font:500 15px var(--body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 11px;width:100%;min-width:0}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--moss);outline-offset:2px}
+.dog{display:grid;grid-template-columns:minmax(0,1.3fr) 84px auto 32px;gap:8px;align-items:center}
+.dog label.chk{display:flex;gap:6px;align-items:center;font-size:13.5px;color:var(--muted);white-space:nowrap}
+.dog input[type=checkbox]{width:auto}
+.x{border:0;background:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0}
+button.add{font:600 14px var(--body);border:1px dashed var(--line);background:none;color:var(--ink);border-radius:9px;padding:9px;cursor:pointer}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{position:relative}
+.chip input{position:absolute;opacity:0;inset:0;cursor:pointer}
+.chip span{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:14px}
+.chip span b{font:600 11px var(--body);color:var(--muted)}
+.chip input:checked+span{background:var(--moss);border-color:var(--moss);color:var(--panel)}
+.chip input:checked+span b{color:inherit;opacity:.8}
+.chip input:focus-visible+span{outline:2px solid var(--moss);outline-offset:2px}
+.people{display:flex;gap:10px;align-items:center}
+.people input{width:80px}
+.results{display:grid;gap:14px}
+.op{border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:10px;background:var(--panel)}
+.op-h{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:baseline}
+.op-h h3{font:700 19px var(--display);margin:0}
+.op-h small{color:var(--muted);font-size:13px}
+.st{font:600 12.5px var(--body);padding:4px 10px;border-radius:999px}
+.st.ok{background:var(--moss-soft);color:var(--moss)} .st.warn{background:var(--amber-soft);color:var(--amber)} .st.no{background:var(--clay-soft);color:var(--clay)}
+.dogrows{display:grid;gap:6px}
+.dr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;font-size:14.5px;padding:7px 0;border-top:1px solid var(--line)}
+.dr .cost{font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+.dr .cost.no{color:var(--clay)}
+ul.rules{margin:0;padding-left:18px;font-size:14px;color:var(--muted);display:grid;gap:3px}
+.src{font-size:12.5px;color:var(--muted)} .src a{color:inherit}
+.flag{background:var(--clay-soft);color:var(--ink);border-radius:10px;padding:10px 12px;font-size:14px}
+.flag strong{color:var(--clay)}
+.check{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.check li{display:grid;grid-template-columns:22px 1fr;gap:10px;font-size:14.5px}
+.check input{width:18px;height:18px;margin-top:3px;accent-color:var(--moss)}
+.extra{background:var(--amber-soft);border-radius:10px;padding:10px 12px;font-size:14px}
+.empty{color:var(--muted);padding:12px 0}
+.foot{margin-top:24px;font-size:13px;color:var(--muted);max-width:80ch}
+.example{display:inline-block;font:600 11px var(--body);text-transform:uppercase;letter-spacing:.08em;color:var(--amber);background:var(--amber-soft);border-radius:6px;padding:2px 7px;margin-left:8px;vertical-align:middle}
+@media (max-width:480px){.dog{grid-template-columns:minmax(0,1fr) 72px 32px}.dog label.chk{grid-column:1/3;grid-row:2}}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+<header>
+  <h1>Dogs <em>on</em> Rails</h1>
+  <p class="lede">Plan a European train trip with your dogs. Add your dogs and the rail companies on your route, and see which trains will take them, what each dog costs, and what papers to carry at the border.</p>
+</header>
+
+<div class="grid">
+<div class="panel">
+  <div class="sec">
+    <h2>Who's travelling <span class="example" id="exTag">Example</span></h2>
+    <div class="people"><span class="label">People</span><input id="ppl" type="number" min="1" max="9" value="2"></div>
+    <div class="label">Dogs</div>
+    <div id="dogs" style="display:grid;gap:8px"></div>
+    <button class="add" id="addDog" type="button">+ Add a dog</button>
+  </div>
+  <div class="sec">
+    <h2>Rail companies on your route</h2>
+    <div class="chips" id="ops"></div>
+  </div>
+  <div class="sec">
+    <h2>Countries you'll enter</h2>
+    <div class="chips" id="ctry"></div>
+    <label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--muted)"><input type="checkbox" id="euRes" checked style="width:auto"> We live in the EU (dogs have EU pet passports)</label>
+  </div>
+</div>
+
+<div class="results">
+  <div id="flags"></div>
+  <div id="out" class="results"></div>
+  <div class="panel">
+    <h2>Border checklist</h2>
+    <ul class="check" id="check"></ul>
+    <div id="extra" style="margin-top:12px;display:grid;gap:8px"></div>
+  </div>
+</div>
+</div>
+
+<p class="foot">Rules checked 27 October 2026 against each company's own pages where available. Rail companies change pet rules often, sometimes with seasonal free-travel offers, so open the source link before you book. Pet entry rules follow the EU non-commercial pet movement rules updated on 22 April 2026 (Animal Health Law framework). New animal health certificates apply from 1 October 2026 for pets entering from outside the EU. Assistance dogs travel free on every company listed and usually without a muzzle. Not veterinary or legal advice.</p>
+</div>
+
+<script>
+const OPS={
+ trenitalia:{name:"Trenitalia",cc:"Italy",src:"https://www.trenitalia.com/en/html/trenitalia/travel-with-your-dog.html",
+   carrier:{ok:true,cost:"Free",note:"Carrier up to 70 × 30 × 50 cm, one per traveller"},
+   large:{ok:true,cost:"Pet ticket",note:"Frecce and Intercity: buy the dog option when booking. Regional trains: about half a 2nd-class fare"},
+   perPerson:1, rules:["Leash and muzzle on board","Carry the pet passport","Not in Premium, quiet zones, private compartments or the café car","Some regional trains ban dogs; they're marked in the timetable"]},
+ italo:{name:"Italo",cc:"Italy",src:"https://blog.italotreno.com/idee-di-viaggio/viaggiare-in-treno-con-il-cane/",
+   carrier:{ok:true,cost:"Free",note:"Up to 5 kg in a carrier, no booking needed"},
+   large:{ok:true,cost:"Dog ticket (price varies by train)",note:"Over 5 kg: book the dog online, Smart or Prima only"},
+   perPerson:1, rules:["Leash always","Muzzle when boarding and leaving, or if staff ask","Carry the pet passport or registry certificate"]},
+ db:{name:"Deutsche Bahn",cc:"Germany",src:"https://www.evz.de/en/topics/transport/train/travelling-with-pets/",
+   carrier:{ok:true,cost:"Free",note:"Cat-sized dogs in a closed box travel as hand luggage"},
+   large:{ok:true,cost:"Own ticket (child fare)",note:"Larger dogs need their own ticket; seats can't be reserved for dogs"},
+   rules:["Leash and muzzle for any dog outside a box","Dogs stay on the floor","Regional transport associations set their own dog fares"]},
+ obb:{name:"ÖBB (incl. Nightjet)",cc:"Austria",src:"https://www.oebb.at/de/reiseplanung-services/vor-ihrer-reise/mit-haustieren-verreisen",
+   carrier:{ok:true,cost:"Free",note:"Small animals in a suitable container"},
+   large:{ok:true,cost:"10% of the full fare, min. €2",note:"Day trains"},
+   rules:["Leash and muzzle on board","Dog sits on the floor, supervised","Nightjet: dogs only if you book a whole compartment, never in Mini Cabins","EuroNight trains run by PKP, ČD and MÁV: no dogs in couchettes or sleepers"]},
+ sbb:{name:"SBB",cc:"Switzerland",src:"https://www.sbb.ch/en/travelcards-and-tickets/tickets-for-switzerland/1-day-travelpass/1-day-travelpass-for-dogs.html",
+   carrier:{ok:true,cost:"Free",note:"Under 30 cm shoulder height, in a box or basket"},
+   large:{ok:true,cost:"Half-fare 2nd class, or Day Pass Dogs CHF 25 (CHF 27 from 13 Dec 2026)",note:"Day Pass covers all trains, buses and boats that day"},
+   rules:["Dog lies under or by your seat, out of the aisle","Not in dining cars"]},
+ sncf:{name:"SNCF",cc:"France",src:"https://www.sncf-connect.com/aide/voyager-avec-un-animal",
+   carrier:{ok:true,cost:"€10 per trip",note:"Flat fare on TGV INOUI, OUIGO and Intercités since January 2026"},
+   large:{ok:true,cost:"€10 per trip",note:"Same flat fare whatever the size; buy with your own ticket"},
+   rules:["Large dogs on a leash and muzzled for the whole trip, lying at your feet","TGV Lyria to Switzerland and France–Italy/Spain routes use separate dog fares"]},
+ hzpp:{name:"HŽPP (Croatian Railways)",cc:"Croatia",src:"https://dnevnik.hr/vijesti/hrvatska/mogu-li-zivotinje-u-javni-prijevoz---752691.html",
+   carrier:{ok:true,cost:"Ticket at the station or on board",note:"Dogs up to 30 cm tall, in a carrier or on your lap; show the vet booklet"},
+   large:{ok:false,cost:"Not allowed",note:"Only small dogs, service dogs and assistance dogs are listed as permitted"},
+   perPerson:1, rules:["One dog or one carrier per passenger","Assistance and service dogs travel free"]},
+ pkp:{name:"PKP Intercity",cc:"Poland",src:"https://www.intercity.pl/pl/site/dla-pasazera/oferty/krajowe/przewoz-psa.html",
+   carrier:{ok:true,cost:"Free",note:"Carrier on your lap or in the luggage space, with the dog fully inside"},
+   large:{ok:true,cost:"11.90 zł dog ticket",note:"Officially allowed on domestic trains. Bought on board, the conductor adds a 20 zł fee"},
+   rules:["Leash and muzzle for the whole trip","Carry the rabies vaccination record","No dogs in couchettes, sleepers or the restaurant car","Traveller report, summer 2026: large dogs were refused on some trains. Check your exact train before booking"]},
+ cd:{name:"České dráhy (ČD)",cc:"Czechia",src:"https://cnn.iprima.cz/jak-cestovat-po-cechach-s-ctyrnohymi-partaky-1101",
+   carrier:{ok:true,cost:"Free",note:"Leak-proof carrier up to 90 × 60 × 40 cm"},
+   large:{ok:true,cost:"Dog ticket (priced by distance)",note:"2nd class, on a short leash and muzzled"},
+   rules:["No dogs in couchettes or sleepers on EuroNight trains","Traveller report, summer 2026: large dogs were refused on some trains. Check your exact train before booking"]},
+ eurostar:{name:"Eurostar",cc:"Belgium",src:"https://www.eurostar.com",
+   carrier:{ok:false,cost:"Not allowed",note:"No pets on board"},
+   large:{ok:false,cost:"Not allowed",note:"Only registered assistance dogs"},
+   rules:["To reach the UK with dogs, use a ferry or Eurotunnel Le Shuttle by car instead"]}
+};
+const CT=["Austria","Belgium","Croatia","Czechia","Finland","France","Germany","Hungary","Ireland","Italy","Malta","Netherlands","Norway","Poland","Slovenia","Spain","Switzerland","United Kingdom"];
+const TAPE=["Finland","Ireland","Malta","Norway","United Kingdom"];
+const $=s=>document.querySelector(s);
+let st={ppl:2,dogs:[{n:"Luna",kg:28,c:false},{n:"Pip",kg:4,c:true}],ops:["trenitalia","obb","db"],ctry:["Italy","Austria","Germany"],euRes:true,ex:true};
+try{const s=JSON.parse(localStorage.getItem("dor.v1")); if(s&&s.dogs) st=s;}catch{}
+const save=()=>{try{localStorage.setItem("dor.v1",JSON.stringify(st))}catch{}};
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function drawInputs(){
+  $("#ppl").value=st.ppl; $("#euRes").checked=st.euRes; $("#exTag").hidden=!st.ex;
+  $("#dogs").innerHTML=st.dogs.map((d,i)=>`<div class="dog" data-i="${i}">
+    <input aria-label="Dog name" id="dn${i}" value="${esc(d.n)}" data-k="n">
+    <input aria-label="Weight in kg" id="dk${i}" type="number" min="0" step="0.5" value="${d.kg}" data-k="kg" title="Weight (kg)">
+    <label class="chk"><input type="checkbox" id="dc${i}" data-k="c" ${d.c?"checked":""}> In a carrier</label>
+    <button class="x" type="button" aria-label="Remove ${esc(d.n)}">×</button></div>`).join("");
+  $("#ops").innerHTML=Object.entries(OPS).map(([k,o])=>`<label class="chip"><input type="checkbox" value="${k}" ${st.ops.includes(k)?"checked":""}><span>${o.name}<b>${o.cc}</b></span></label>`).join("");
+  $("#ctry").innerHTML=CT.map(c=>`<label class="chip"><input type="checkbox" value="${c}" ${st.ctry.includes(c)?"checked":""}><span>${c}</span></label>`).join("");
+}
+function results(){
+  const flags=[];
+  if(st.dogs.length>5) flags.push("<strong>More than five dogs.</strong> EU rules limit non-commercial travel to five pets per private vehicle unless they're going to a competition or show.");
+  $("#out").innerHTML = st.ops.length? st.ops.map(k=>{
+    const o=OPS[k]; let blocked=0, cap=false;
+    const rows=st.dogs.map(d=>{ const r=d.c?o.carrier:o.large; if(!r.ok) blocked++; return `<div class="dr"><div><strong>${esc(d.n||"Dog")}</strong> · ${d.kg} kg${d.c?", carrier":""}<br><span style="color:var(--muted);font-size:13.5px">${r.note}</span></div><div class="cost ${r.ok?"":"no"}">${r.cost}</div></div>`;}).join("");
+    if(o.perPerson && st.dogs.length>st.ppl*o.perPerson){ cap=true; flags.push(`<strong>${o.name}:</strong> one dog per passenger. ${st.dogs.length} dogs need ${st.dogs.length} travellers, and you have ${st.ppl}.`); }
+    const s = blocked===st.dogs.length&&st.dogs.length?["no","Won't take your dogs"]:blocked||cap?["warn","Partly"]:["ok","All dogs can travel"];
+    return `<article class="op"><div class="op-h"><h3>${o.name}</h3><span class="st ${s[0]}">${s[1]}</span></div><div class="dogrows">${rows||'<p class="empty">Add a dog to see costs.</p>'}</div><ul class="rules">${o.rules.map(r=>`<li>${r}</li>`).join("")}</ul><div class="src">Source: <a href="${o.src}" target="_blank" rel="noopener">${new URL(o.src).hostname}</a></div></article>`;
+  }).join("") : `<div class="panel empty">Pick the rail companies on your route to see what each one allows.</div>`;
+  $("#flags").innerHTML=flags.map(f=>`<div class="flag">${f}</div>`).join("") ;
+  $("#flags").style.display=flags.length?"grid":"none"; $("#flags").style.gap="8px";
+  // checklist
+  const items=[
+    "Microchip implanted before the rabies vaccination",
+    "Rabies vaccine given at 12 weeks old or later, and at least 21 days before travel after a first vaccination",
+    st.euRes?"EU pet passport with chip number and valid rabies entry (since 22 April 2026, passports are for EU residents only)":"Animal health certificate from an official vet, issued within 10 days before entering the EU (new certificate model from 1 October 2026)",
+    "Muzzle and short leash for every dog travelling outside a carrier",
+    "Written permission from the owner if someone else travels with the dog"
+  ];
+  $("#check").innerHTML=items.map((t,i)=>`<li><input type="checkbox" id="ck${i}" aria-label="${t}"><span>${t}</span></li>`).join("");
+  const ex=[]; const tape=st.ctry.filter(c=>TAPE.includes(c));
+  if(tape.length) ex.push(`<div class="extra"><strong>Tapeworm treatment for ${tape.join(", ")}.</strong> A vet must treat each dog against Echinococcus 1 to 5 days (24–120 hours) before arrival and record it in the passport.</div>`);
+  if(st.ctry.includes("United Kingdom")) ex.push(`<div class="extra"><strong>United Kingdom.</strong> Separate rules apply outside the EU. Dogs can't use Eurostar, so plan a ferry or Eurotunnel by car, and check the UK government's pet travel page before booking.</div>`);
+  if(st.ctry.includes("Switzerland")||st.ctry.includes("Norway")) ex.push(`<div class="extra">Switzerland and Norway follow the EU pet rules and accept EU pet passports.</div>`);
+  $("#extra").innerHTML=ex.join("");
+}
+function refresh(){ save(); results(); }
+$("#dogs").addEventListener("input",e=>{const row=e.target.closest(".dog"); if(!row) return; const d=st.dogs[+row.dataset.i], k=e.target.dataset.k; d[k]=k==="c"?e.target.checked:k==="kg"?(+e.target.value||0):e.target.value; st.ex=false; $("#exTag").hidden=true; refresh();});
+$("#dogs").addEventListener("click",e=>{if(!e.target.classList.contains("x")) return; st.dogs.splice(+e.target.closest(".dog").dataset.i,1); st.ex=false; drawInputs(); refresh();});
+$("#addDog").onclick=()=>{st.dogs.push({n:"Dog "+(st.dogs.length+1),kg:12,c:false}); st.ex=false; drawInputs(); refresh();};
+$("#ppl").oninput=e=>{st.ppl=Math.max(1,+e.target.value||1); st.ex=false; $("#exTag").hidden=true; refresh();};
+$("#euRes").onchange=e=>{st.euRes=e.target.checked; refresh();};
+$("#ops").onchange=()=>{st.ops=[...document.querySelectorAll("#ops input:checked")].map(i=>i.value); refresh();};
+$("#ctry").onchange=()=>{st.ctry=[...document.querySelectorAll("#ctry input:checked")].map(i=>i.value); refresh();};
+drawInputs(); results();
+</script>
+
+</body>
+</html>
